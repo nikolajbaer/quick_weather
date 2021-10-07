@@ -9,8 +9,8 @@ import "leaflet/dist/leaflet.css"
 
 import { chart } from "./src/chart"
 
-function init(){
-  const latlng = {lat:32.7499568,lng:-117.2521772}
+function build_chart(latlng){
+
   load_forecast(latlng).then( result => {
     console.log(result)
     window.data = result
@@ -182,5 +182,19 @@ function map(latlng,data){
 		}
 	}).addTo(map);
   return container
+}
+
+
+function init(){
+  browser_location().then( result => {
+    const latlng = {
+      lat: result.coords.latitude,
+      lng: result.coords.longitude,
+    }
+    build_chart(latlng)
+  }).catch( error => {
+    console.error(error)
+    build_chart({lat:32.7499568,lng:-117.2521772})
+  })
 }
 init()
