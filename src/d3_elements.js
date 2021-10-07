@@ -1,5 +1,5 @@
 import * as d3 from "d3"
-import * as moment from "moment"
+import moment from "moment"
 
 function svg_g(contents){
   const e = document.createElement("g")

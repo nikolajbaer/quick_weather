@@ -1,6 +1,6 @@
 import * as d3 from "d3"
 import { DaySummary,VertLine,WindArrow } from "./d3_elements"
-import * as moment from "moment"
+import moment from "moment"
 
 const margin = ({top: 26, right: 20, bottom: 4, left: 30})
 const height = 200
