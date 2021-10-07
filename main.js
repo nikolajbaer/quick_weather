@@ -3,7 +3,7 @@ import './style.css'
 import * as duration from 'iso8601-duration'
 import * as d3 from "d3"
 import * as SunCalc from "suncalc"
-import * as moment from "moment"
+import moment from "moment"
 import * as L from "leaflet"
 import "leaflet/dist/leaflet.css"
 
