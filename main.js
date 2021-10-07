@@ -22,9 +22,7 @@ function build_chart(latlng){
     document.getElementById("app").appendChild(
       chart(days_data,hourly_data)
     )
-    document.getElementById("app").appendChild(
-      map(latlng,result)
-    )
+    build_map(latlng,result)
   })
 }
 
@@ -157,12 +155,11 @@ function hourly(forecast){
 }
 
 
-function map(latlng,data){
-  let container = document.createElement("div")
-  container.style.height = "400px"
-  let map = L.map(container).setView([latlng.lat,latlng.lng], 14);
-  let osmLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png', {
-      attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+function build_map(latlng,data){
+  let map = L.map(document.getElementById("map")).setView([latlng.lat,latlng.lng], 14);
+  let osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+	    maxZoom: 19,
+	    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
   }).addTo(map);
   L.marker([latlng.lat,latlng.lng]).addTo(map)
     .bindPopup(data.station.name);
@@ -181,7 +178,6 @@ function map(latlng,data){
 			});
 		}
 	}).addTo(map);
-  return container
 }
 
 

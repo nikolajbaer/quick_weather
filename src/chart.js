@@ -68,15 +68,27 @@ export function chart(days,hourly){
     .domain([0,100]).nice()
     .range([height - margin.bottom, margin.top])
 
-  const xAxis = g => g
-    .attr("transform", `translate(0,${height - margin.bottom})`)
-    .call(d3.axisBottom(x).ticks(d3.timeHour.every(12)))
+    const wind_line = d3.line()
+    .curve(d3.curveCatmullRom)
+    .x( d => x_time(d.time) )
+    .y(d => windspeed_y(d.value * 0.621371) ) // convert kmph to mph
+
+  const windspeed_y = d3.scaleLinear()
+    .domain([0,d3.max(hourly.windSpeed,d => d.value * 0.621371)]).nice() // kmph to mph
+    .range([height/2 - margin.bottom, margin.top])
+
+ const windspeed_yAxis =  g => g
+    .attr("transform", `translate(${margin.left},0)`)
+    .call(d3.axisLeft(windspeed_y))
     .call(g => g.select(".domain").remove())
     .call(g => g.selectAll(".tick line").clone()
-        .attr("y2", -height)
+        .attr("x2", width)
         .attr("stroke-opacity", 0.1))
-
-
+    .call(g => g.append("text")
+        .attr("x", -margin.left)
+        .attr("y", 10)
+        .attr("fill", "currentColor")
+        .attr("text-anchor", "start")) 
 
   // Days Grid
   const days_grid = svg.append("g")
@@ -115,15 +127,13 @@ export function chart(days,hourly){
   const dayShort = d3.timeFormat('%a %m/%d')
   day_blocks.append((d) => {
       const ds = new DaySummary(d)
+      console.log(ds.node)
       return ds.node
     }).attr("transform", d => `translate(${x_time(d.noon)},10)` )
   
   // Top Chart
   const top = svg.append("g")
       .attr("transform", "translate(0," + chart_y + ")");
-
-  //top.append("g")
-  //    .call(xAxis);
 
   top.append("g")
       .call(yAxis);
@@ -145,9 +155,6 @@ export function chart(days,hourly){
   // Bottom Chart
   const bottom = svg.append("g")
     .attr("transform", "translate(0," + (chart_y + height) + ")");
-  
- //bottom.append("g")
- //     .call(xAxis);
   
   bottom.append("g")
       .call(precip_yAxis);
@@ -195,40 +202,16 @@ export function chart(days,hourly){
 
 
   const dawn_time_blocks = d3.area()
-  .x0( d => x_time(d.start) )
-  .x1( d => x_time(d.sunrise) )
-  .y0(0)
-  .y1(height)
+    .x0( d => x_time(d.start) )
+    .x1( d => x_time(d.sunrise) )
+    .y0(0)
+    .y1(height)
 
   // Wind Chart
   
   const windchart = svg.append("g")
     .attr("transform", "translate(0," + (chart_y + height * 2) + ")");
   
-  const wind_line = d3.line()
-    .curve(d3.curveCatmullRom)
-    .x( d => x_time(d.time) )
-    .y(d => windspeed_y(d.value * 0.621371) ) // convert kmph to mph
-
-  const windspeed_y = d3.scaleLinear()
-    .domain([0,d3.max(hourly.windSpeed,d => d.value * 0.621371)]).nice() // kmph to mph
-    .range([height/2 - margin.bottom, margin.top])
-
-  //windchart.append("g")
-  //    .call(xAxis);
-
- const windspeed_yAxis =  g => g
-    .attr("transform", `translate(${margin.left},0)`)
-    .call(d3.axisLeft(windspeed_y))
-    .call(g => g.select(".domain").remove())
-    .call(g => g.selectAll(".tick line").clone()
-        .attr("x2", width)
-        .attr("stroke-opacity", 0.1))
-    .call(g => g.append("text")
-        .attr("x", -margin.left)
-        .attr("y", 10)
-        .attr("fill", "currentColor")
-        .attr("text-anchor", "start")) 
   windchart.append("g")
       .call(windspeed_yAxis);
   
@@ -268,13 +251,13 @@ export function chart(days,hourly){
       .on("mouseout", () => {
         dateLine.hide()
       });
+  svg.append(() => dateLine.node)
   
   const curTime = new VertLine(chart_y,full_height,"black")
   const n = new Date()
   curTime.show(x_time(n),0,null)
+
   svg.append(() => curTime.node)
-  
-  svg.append(() => dateLine.node)
   
   return svg.node();
 }

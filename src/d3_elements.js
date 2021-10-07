@@ -1,8 +1,8 @@
 import * as d3 from "d3"
 import * as moment from "moment"
 
-function svg(contents){
-  const e = document.createElement("svg")
+function svg_g(contents){
+  const e = document.createElement("g")
   e.innerHTML = contents
   return e
 }
@@ -12,7 +12,7 @@ export class DaySummary {
   constructor(day) {
     const wv = determine_weather(day);
    
-    this.node = svg(`<g font-family="sans-serif" font-size="12" text-anchor="middle">
+    this.node = svg_g(`<g font-family="sans-serif" font-size="12" text-anchor="middle">
         <text y="0">${moment(day.noon).format('ddd M/D')}</text>
         <text y="14">${formatTemp(day.temp.max)} | ${formatTemp(day.temp.min)}</text>
         <text y="28">${wv.n} ${wv.i}</text>
@@ -23,10 +23,10 @@ export class DaySummary {
 
 export class VertLine {
   constructor(y0,y1,stroke_color) {
-    this._pos = svg(`<text x="4" y="${y0} - 12"></text>`);
-    this._line = svg(`<path d="M 0 ${y0} L 0 ${y1}" stroke="${stroke_color}">`);
-    this._points = svg(`<g></g>`);
-    this.node = svg(`<g pointer-events="none" display="none" font-family="sans-serif" font-size="10" text-anchor="middle">
+    this._pos = svg_g(`<text x="4" y="${y0} - 12"></text>`);
+    this._line = svg_g(`<path d="M 0 ${y0} L 0 ${y1}" stroke="${stroke_color}">`);
+    this._points = svg_g(`<g></g>`);
+    this.node = svg_g(`<g pointer-events="none" display="none" font-family="sans-serif" font-size="10" text-anchor="middle">
       ${this._pos}
       ${this._line}
     </g>`);
@@ -51,7 +51,7 @@ export class VertLine {
 
 export class WindArrow {
   constructor(fill_color) {
-    this.node = svg(`<polygon points="0, -5 -3, 3 0, 1 3, 3" fill="${fill_color}">`);
+    this.node = svg_g(`<polygon points="0, -5 -3, 3 0, 1 3, 3" fill="${fill_color}">`);
   }
 }
 
