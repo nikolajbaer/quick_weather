@@ -1,41 +1,40 @@
 import './style.css'
 
 import * as duration from 'iso8601-duration'
-import * as d3 from "d3"
 import * as SunCalc from "suncalc"
 import moment from "moment"
 import * as L from "leaflet"
 import "leaflet/dist/leaflet.css"
 
-import { chart } from "./src/chart"
-
-function build_chart(latlng){
-
-  load_forecast(latlng).then( result => {
+export function build_chart_data(latlng){
+  return load_forecast(latlng).then( result => {
     console.log(result)
-    window.data = result
+    window.data = result // debug
     return result
   }).then( result =>{
-    const days_data = days(result.forecast,latlng)
-    const hourly_data = hourly(result.forecast)
-    console.log(days_data,hourly_data)
-    document.getElementById("app").appendChild(
-      chart(days_data,hourly_data)
-    )
-    build_map(latlng,result)
+    const days_data = build_days_data(result.forecast,latlng)
+    const hourly_data = build_hourly_data(result.forecast)
+    return {days:days_data,hourly:hourly_data,station:result.station}
   })
 }
 
-function browser_location(){
+export function browser_location(){
   return new Promise(function (resolve, reject) {
-    navigator.geolocation.getCurrentPosition(resolve, reject, {  
-      enableHighAccuracy: true,
-      timeout: 5000,
-      maximumAge: 0
-    });
+    navigator.geolocation.getCurrentPosition(result => {
+      resolve({
+          lat: result.coords.latitude,
+          lng: result.coords.longitude,
+      })
+    }, reject, {  
+        enableHighAccuracy: true,
+        timeout: 5000,
+        maximumAge: 0
+    })
   })
 }
 
+// api.weather.gov delivers forecasts with rows spanning multiple hours using
+// iso8601, so this is a 
 // utility to expand the iso date timespan formats, e.g. PT6H, to 6 hourly values
 // note maybe we need to pass in the extent we want as well
 function expand_forecast(values,f){
@@ -57,8 +56,8 @@ function expand_forecast(values,f){
   return data;
 }
 
-
-
+// Load forecast for given location from api.weather.gov
+// combine office, grid data, and station information in promises
 function load_forecast(latlng){
   return fetch(`https://api.weather.gov/points/${latlng.lat},${latlng.lng}`).then( response => response.json())
     .then( data => {
@@ -76,6 +75,8 @@ function load_forecast(latlng){
     })
 }
 
+// declare our metrics that we want to show, and conversions where
+// applicable
 const metrics = [
   ['temperature', d => d.value * 9/5 + 32],
   ['dewpoint', d => d.value * 9/5 + 32],
@@ -89,19 +90,10 @@ const metrics = [
 
 
 // TODO Tides https://api.tidesandcurrents.noaa.gov/api/prod/
-function days(forecast,latlng){
+function build_days_data(forecast,latlng){
   const days = [];
   const forecast_start = moment.parseZone(forecast.properties.validTimes.split('/')[0]).toDate()
-  console.log("Forecast Valid for ",forecast.properties.validTimes,forecast_start,duration.parse(forecast.properties.validTimes))
-
-  //const start_date = new Date(forecast_start.getFullYear(),forecast_start.getMonth(),forecast_start.getDate()+1)
   
-  const weather_values = expand_forecast(forecast.properties.weather.values)
-  const min_temps = expand_forecast(forecast.properties.minTemperature.values)
-  const max_temps = expand_forecast(forecast.properties.minTemperature.values)
-  const precip_total = expand_forecast(forecast.properties.quantitativePrecipitation.values)
-  // Todo expand out a forecast so we can pull the value for a specific time / date.
-
   // get local timezone offset
   // All incoming times are in UTC +00, but we want to show local time per
   // user's browser
@@ -135,7 +127,7 @@ function days(forecast,latlng){
     }
     days.push(day)
   }
-  return days; //,weather_values]
+  return days
 }
 
 function forecast_for_time(metric,d,forecast){
@@ -145,7 +137,7 @@ function forecast_for_time(metric,d,forecast){
   return matching[0]
 }
 
-function hourly(forecast){
+function build_hourly_data(forecast){
   const pt_regex = /\d+/g
   const data = {}
   metrics.forEach( metric_pak => {
@@ -154,8 +146,7 @@ function hourly(forecast){
   return data;
 }
 
-
-function build_map(latlng,data){
+export function build_map(latlng,data){
   let map = L.map(document.getElementById("map")).setView([latlng.lat,latlng.lng], 14);
   let osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 	    maxZoom: 19,
@@ -180,17 +171,15 @@ function build_map(latlng,data){
 	}).addTo(map);
 }
 
-
-function init(){
+export function init_chart_data(){
   browser_location().then( result => {
     const latlng = {
       lat: result.coords.latitude,
       lng: result.coords.longitude,
     }
-    build_chart(latlng)
+    return build_chart_data(latlng)
   }).catch( error => {
     console.error(error)
-    build_chart({lat:32.7499568,lng:-117.2521772})
+    return build_chart_data({lat:32.7499568,lng:-117.2521772})
   })
 }
-init()
