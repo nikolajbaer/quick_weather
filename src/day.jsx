@@ -8,11 +8,16 @@ export function Day(props){
     )
   })
 
+  // figure out our temperature range, and expand to 10s place
+  const temp_range = get_range([props.hourly.temperature,props.hourly.dewpoint])
+  temp_range.min = Math.floor(temp_range.min/10) * 10
+  temp_range.max = Math.ceil(temp_range.max/10) * 10
+
   return (
     <>
       <div class="day">
         <Summary day={props.day}/>
-        <TempChart day={props.day} hourly={hourly} />
+        <TempChart day={props.day} hourly={hourly} temp_range={temp_range} />
       </div>
     </>
   ) 
@@ -46,9 +51,14 @@ function Summary(props){
 
 
 function TempChart(props){
-  // TODO make a y-value mapping
-  const temp = hourly_path(hourly.temperature,props.day.start, v => v)
-  const dewpoint = hourly_path(hourly.dewpoint,props.day.start, v => v)
+  const range = props.temp_range.max - props.temp_range.min
+  const yval = (v) => {
+    return 300 - (v - props.temp_range.min)/range * 300 
+  }
+
+  const temp = hourly_path(hourly.temperature,props.day.start, v => yval(v))
+  const dewpoint = hourly_path(hourly.dewpoint,props.day.start, v => yval(v))
+
   return (
     <>
       <svg viewBox="0 0 240 300" >
@@ -100,4 +110,19 @@ function hourly_path(values,start,yval){
   return 'M'  + values.map( m => {
     return `${xval(m.time,start)} ${yval(m.value)}`
   }).join('L ')
+}
+
+// get the min/max of all the arrays in metrics
+function get_range(metrics){
+  return metrics.map( metric => {
+    return metric.reduce( (p,v) => {
+      if(p.min == null || p.min > v.value){ p.min = v.value }
+      if(p.max == null || p.max < v.value){ p.max = v.value }
+      return p
+    },{min:null,max:null})
+  }).reduce( (p,v) => {
+      if(p.min == null || p.min > v.min){ p.min = v.min }
+      if(p.max == null || p.max < v.max){ p.max = v.max }
+      return p
+  },{min:null,max:null})
 }
