@@ -28,8 +28,13 @@ export function Chart(props){
   }, []);
 
   let days = []
+  const today = new Date()
   if(forecast){
     for(var i=0;i<8;i++) {
+      // Data might include prior day, but we don't want to show historical forecast
+      if(forecast.days[i].start.getDate() < today.getDate() && forecast.days[i].start.getMonth() == today.getMonth()){
+        continue
+      }
       days.push(<Day day={forecast.days[i]} hourly={forecast.hourly} />)
     }
   }

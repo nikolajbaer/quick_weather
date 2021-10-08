@@ -61,7 +61,7 @@ function expand_forecast(values,f){
 // Load forecast for given location from api.weather.gov
 // combine office, grid data, and station information in promises
 function load_forecast(latlng){
-  return fetch(`https://api.weather.gov/points/${latlng.lat},${latlng.lng}`).then( response => response.json())
+  return fetch(`https://api.weather.gov/points/${latlng.lat.toFixed(4)},${latlng.lng.toFixed(4)}`).then( response => response.json())
     .then( data => {
       return Promise.all([
         fetch(data.properties.forecastOffice).then( response => response.json() ),
