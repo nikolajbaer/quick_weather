@@ -5,3 +5,49 @@
   text-align: center;
   margin-top: 40px;
 }
+
+.days {
+  display: flex;
+  padding-left: 3em;
+}
+.day {
+  width: 12.5%;
+  height: 400px;
+  min-width: 120px;
+  /*
+  border-right: 1px solid #333;
+  border-top: 1px solid #333;
+  border-bottom: 1px solid #333;
+  */
+}
+.day:first-child{
+  /* border-left: 1px solid #333; */
+}
+
+.day .summary {
+  height: 200px;
+}
+.summary h3 {
+  font-size: 12pt;
+  margin-top: 4px;
+  margin-bottom: 4px;
+}
+.summary ul {
+  margin-top: 4px;
+  font-size: 10pt;
+  list-style: none;
+  padding-left: 0px;
+}
+.summary .temp {
+  margin-left: 0px;
+}
+.maxtemp {
+  color: red;
+}
+.mintemp {
+  color: blue;
+}
+.summary .weather {
+  font-size: 32pt;
+  margin: 0px;
+}

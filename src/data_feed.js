@@ -14,6 +14,8 @@ export function build_chart_data(latlng){
   }).then( result =>{
     const days_data = build_days_data(result.forecast,latlng)
     const hourly_data = build_hourly_data(result.forecast)
+    window.days = days_data
+    window.hourly = hourly_data
     return {days:days_data,hourly:hourly_data,station:result.station}
   })
 }
@@ -110,7 +112,6 @@ function build_days_data(forecast,latlng){
     const inclement = forecast_for_time("weather",noon,forecast)
     const precip_total = forecast_for_time("quantitativePrecipitation",noon,forecast).value.value * 0.393701 * .1 // inches
     const skyCover = forecast_for_time("skyCover",noon,forecast).value.value
-
     
     const day = {
       start: start.startOf('day').toDate(),
