@@ -1,18 +1,34 @@
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
+body {
+  font-family: sans-serif;
   margin-top: 40px;
 }
-
+h1 {
+  text-align: center;
+  font-size: 16pt;
+}
 .days {
   display: flex;
   padding-left: 3em;
 }
+.chart .search {
+  margin: auto;
+  text-align: center;
+  height: 40px; 
+}
+.chart .search button {
+  margin: 0px 0px 0px 4px;
+  padding: 0px;
+  height: 30px;
+  width: 30px;
+  cursor: pointer;
+}
+.chart .search input {
+  margin: 0px 0px 0px 4px;
+  padding: 0px;
+  height: 26px;
+}
 .day {
   width: 12.5%;
-  height: 400px;
   min-width: 120px;
   /*
   border-right: 1px solid #333;
@@ -26,6 +42,11 @@
 
 .day .summary {
   height: 200px;
+  font-size: 10pt;
+  text-align: center;
+}
+.day .summary p {
+  margin: 5px;
 }
 .summary h3 {
   font-size: 12pt;
@@ -54,4 +75,11 @@
 
 svg.lower_chart {
   margin-top: 30px;
+}
+
+#sources {
+  clear: both;
+  text-align: center;
+  margin: 15px;
+  font-size: 8pt;
 }

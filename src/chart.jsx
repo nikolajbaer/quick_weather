@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'preact/hooks';
+import { useState, useCallback, useEffect, useRef } from 'preact/hooks';
 import {build_chart_data,browser_location} from './data_feed.js';
 import { Day } from './day.jsx'
 
@@ -15,9 +15,27 @@ function useForecastData(){
 
 export function Chart(props){
   const { forecast, updateForecast} = useForecastData()
+  const input_ref = useRef(null)
 
-  // TODO allow user to change location
-  useEffect(() => {
+  const lookup_location = (event) => {
+    if(input_ref.current.value.length < 5){
+      alert("Must be at last 5 characters long, e.g. a zip code")
+    }else{
+      fetch(
+        `https://nominatim.openstreetmap.org/search?q=${input_ref.current.value}&countrycodes=us&format=jsonv2`
+      ).then( response => response.json() ).then( data => {
+        if(data.length > 0){
+          const latlng = {lat:Number(data[0].lat),lng:Number(data[0].lon)}
+          updateForecast(latlng)
+        }else{
+          alert(`Sorry, no locations found for "${input_ref.current.value}`)
+        }
+      })
+    }
+  }
+
+  const my_location = (event) => {
+    input_ref.current.value = ""
     browser_location().then( latlng => {
       return updateForecast(latlng)
     }).catch( error => {
@@ -25,6 +43,11 @@ export function Chart(props){
       // and Show them Ocean Beach, San Diego, CA =]
       return updateForecast({lat:32.7499568,lng:-117.2521772})
     })
+  }
+
+  useEffect(() => {
+    // Initialize with user's location 
+    my_location(null)
   }, []);
 
   let days = []
@@ -42,7 +65,13 @@ export function Chart(props){
   return (
     <>
       <div class="chart">
-        <h2>{forecast==null?"Loading":forecast.station.name}</h2>
+        <h1>{forecast==null?"Loading":forecast.station.name}</h1>
+        <div class="search">
+          <label>Change Location:</label>
+          <input type="text" placeholder="Enter city or zip" ref={input_ref} />
+          <button onClick={lookup_location}>Go</button>
+          <button onClick={my_location}>⛯</button>
+        </div>
         <div class="days">
           {days}
         </div>

@@ -3,6 +3,7 @@ import { Chart } from './chart.jsx'
 import './style.css'
 
 function App(props){
+
   return (
     <>
       <Chart/>

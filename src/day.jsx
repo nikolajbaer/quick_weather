@@ -19,14 +19,19 @@ export function Day(props){
   wind_range.min = Math.floor((wind_range.min-1)/10) * 10
   wind_range.max = Math.ceil((wind_range.max+1)/10) * 10
 
+  // TODO show highlight on charts
   const track_mouse = (event) => {
     const rect = day_div.current.getBoundingClientRect();
     const hour = ((event.pageX - rect.left)/day_div.current.clientWidth) * 24
+    // set hour?
+  }
+  const clear_mouse = (event) => {
+    // clear hour?
   }
 
   return (
     <>
-      <div class="day" onMouseMove={track_mouse} ref={day_div}>
+      <div class="day" onMouseMove={track_mouse} ref={day_div} onMouseLeave={clear_mouse}>
         <Summary day={props.day}/>
         <TempChart day={props.day} hourly={hourly} temp_range={temp_range} />
         <PrecipChart day={props.day} hourly={hourly} />
@@ -48,6 +53,7 @@ function Summary(props){
       <div class="summary">
         <h3>{title}</h3>
         <p class="weather">{weather.i}</p>
+        <p>{weather.n}</p>
         <p class="temp">
           <span class="maxtemp">{formatTemp(props.day.temp.max)}</span> |&nbsp;
           <span class="mintemp">{formatTemp(props.day.temp.min)}</span>
@@ -155,7 +161,7 @@ function DawnDuskUnderlay(props){
 }
 
 const HOUR_FMT = 'h:mmA'
-const DAY_FMT = 'ddd, MMM Do'
+const DAY_FMT = 'ddd M/D'
 
 function formatTemp(C){ return (Math.round((C*(9/5)) + 32) + "°F") }
 
