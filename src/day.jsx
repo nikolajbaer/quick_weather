@@ -1,7 +1,12 @@
-import { useRef } from 'preact/hooks'
+import { useRef,useState } from 'preact/hooks'
 import moment from 'moment';
 
 export function Day(props){
+  const [ cursor, setCursor ] = useState(null)
+
+  const t = new Date()
+  const current = (t > props.day.end || t < props.day.start)?null:xval(new Date(),props.day.start)
+
   const day_div = useRef(null)
   const hourly = {}
   Object.keys(props.hourly).forEach( k => {
@@ -22,20 +27,19 @@ export function Day(props){
   // TODO show highlight on charts
   const track_mouse = (event) => {
     const rect = day_div.current.getBoundingClientRect();
-    const hour = ((event.pageX - rect.left)/day_div.current.clientWidth) * 24
-    // set hour?
+    setCursor(((event.pageX - rect.left)/day_div.current.clientWidth) * 300)
   }
   const clear_mouse = (event) => {
-    // clear hour?
+    setCursor(null)
   }
 
   return (
     <>
       <div class="day" onMouseMove={track_mouse} ref={day_div} onMouseLeave={clear_mouse}>
         <Summary day={props.day}/>
-        <TempChart day={props.day} hourly={hourly} temp_range={temp_range} />
-        <PrecipChart day={props.day} hourly={hourly} />
-        <WindChart day={props.day} hourly={hourly} wind_range={wind_range} />
+        <TempChart day={props.day} hourly={hourly} temp_range={temp_range} cursor={cursor} current={current}/>
+        <PrecipChart day={props.day} hourly={hourly} cursor={cursor} current={current} />
+        <WindChart day={props.day} hourly={hourly} wind_range={wind_range} cursor={cursor} current={current} />
       </div>
     </>
   ) 
@@ -81,6 +85,8 @@ function TempChart(props){
         <YGridUnderlay range={props.temp_range} interval={interval} />
         <path d={temp} stroke="red" fill="none" />
         <path d={dewpoint} stroke="green" fill="none" />
+        <TimeLineOverlay stroke="orange" x={props.cursor} />
+        <TimeLineOverlay stroke="black" x={props.current} />
       </svg>
     </>
   )
@@ -104,6 +110,8 @@ function PrecipChart(props){
         <YGridUnderlay range={precip_range} interval={interval} />
         <path d={cloud} stroke="#333" fill="#999" opacity="0.3" />
         <path d={precip} stroke="blue" fill="lightblue" opacity="0.5" />
+        <TimeLineOverlay stroke="orange" x={props.cursor} />
+        <TimeLineOverlay stroke="black" x={props.current} />
       </svg>
     </>
   )
@@ -119,6 +127,8 @@ function WindChart(props){
         <DawnDuskUnderlay day={props.day} />
         <YGridUnderlay range={props.wind_range} interval={interval} />
         <path d={speed} stroke="darkblue" fill="none" />
+        <TimeLineOverlay stroke="orange" x={props.cursor} />
+        <TimeLineOverlay stroke="black" x={props.current} />
       </svg>
     </>
   )
@@ -151,13 +161,22 @@ function DawnDuskUnderlay(props){
   return (
     <>
       <g>
-        <rect fill="#DDD" width={dawn} height="300" />
-        <rect fill="#DDD" x={sunset} width={dusk} height="300" />
+        <rect fill="#EEE" width={dawn} height="300" />
+        <rect fill="#EEE" x={sunset} width={dusk} height="300" />
         <line x1="240" y1="0" x2="240" y2="300" stroke="#aaa" />
       </g>
     </>
   )
 
+}
+
+function TimeLineOverlay(props){
+  if(props.x == null){ return '' }
+  return (
+    <>
+      <line x1={props.x} x2={props.x} y1="0" y2="300" stroke={props.stroke} fill="none" />
+    </>
+  )
 }
 
 const HOUR_FMT = 'h:mmA'

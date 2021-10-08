@@ -72,7 +72,9 @@ h1 {
   font-size: 32pt;
   margin: 0px;
 }
-
+svg {
+  cursor: pointer;
+}
 svg.lower_chart {
   margin-top: 30px;
 }
