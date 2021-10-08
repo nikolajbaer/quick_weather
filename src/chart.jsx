@@ -28,7 +28,7 @@ export function Chart(props){
           const latlng = {lat:Number(data[0].lat),lng:Number(data[0].lon)}
           updateForecast(latlng)
         }else{
-          alert(`Sorry, no locations found for "${input_ref.current.value}`)
+          alert(`Sorry, no locations found for "${input_ref.current.value}. Forecasts are limited to the USA`)
         }
       })
     }
@@ -58,7 +58,9 @@ export function Chart(props){
       if(forecast.days[i].start.getDate() < today.getDate() && forecast.days[i].start.getMonth() == today.getMonth()){
         continue
       }
-      days.push(<Day day={forecast.days[i]} hourly={forecast.hourly} />)
+      const show_left_axis = days.length == 0
+      const show_right_axis = i == 7
+      days.push(<Day day={forecast.days[i]} hourly={forecast.hourly} show_left_axis={show_left_axis} show_right_axis={show_right_axis} />)
     }
   }
 
@@ -67,14 +69,17 @@ export function Chart(props){
       <div class="chart">
         <h1>{forecast==null?"Loading":forecast.station.name}</h1>
         <div class="search">
-          <label>Change Location:</label>
-          <input type="text" placeholder="Enter city or zip" ref={input_ref} />
+          <input type="text" placeholder="To change location, enter city or zip (USA only)" ref={input_ref} />
           <button onClick={lookup_location}>Go</button>
-          <button onClick={my_location}>⛯</button>
+          <button onClick={my_location}>Use My Location</button>
         </div>
         <div class="days">
           {days}
         </div>
+      </div>
+      <div id="sources">
+        <p>Created by <a href="https://github.com/nikolajbaer">Nikolaj Baer</a>. Weather data from <a href="https://www.weather.gov/documentation/services-web-api#/">api.weather.gov (NWS)</a></p>
+        <p>Forecasts are only available for the United States.</p>
       </div>
     </>
   )

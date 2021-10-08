@@ -8,7 +8,7 @@ h1 {
 }
 .days {
   display: flex;
-  padding-left: 3em;
+  padding-left: 30px;
 }
 .chart .search {
   margin: auto;
@@ -19,13 +19,14 @@ h1 {
   margin: 0px 0px 0px 4px;
   padding: 0px;
   height: 30px;
-  width: 30px;
+  padding: 4px;
   cursor: pointer;
 }
 .chart .search input {
   margin: 0px 0px 0px 4px;
   padding: 0px;
   height: 26px;
+  width: 300px;
 }
 .day {
   width: 12.5%;
