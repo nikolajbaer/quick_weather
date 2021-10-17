@@ -24,10 +24,10 @@ export function Day(props){
   wind_range.min = Math.floor((wind_range.min-1)/10) * 10
   wind_range.max = Math.ceil((wind_range.max+1)/10) * 10
 
-  // TODO show highlight on charts
+  // Track mouse position and show cursor with chart readouts
   const track_mouse = (event) => {
     const rect = day_div.current.getBoundingClientRect();
-    setCursor(((event.pageX - rect.left)/day_div.current.clientWidth) * 300)
+    setCursor(((event.pageX - rect.left)/day_div.current.clientWidth) * 240)
   }
   const clear_mouse = (event) => {
     setCursor(null)
@@ -87,6 +87,22 @@ function TempChart(props){
         <path d={dewpoint} stroke="green" fill="none" />
         <TimeLineOverlay stroke="orange" x={props.cursor} />
         <TimeLineOverlay stroke="black" x={props.current} />
+        <MetricReadout 
+          color="red" 
+          units="°F" 
+          range={props.temp_range} 
+          start={props.day.start} 
+          cursor={props.cursor} 
+          metric={props.hourly.temperature} 
+        />
+        <MetricReadout 
+          color="green" 
+          units="°F" 
+          range={props.temp_range} 
+          start={props.day.start} 
+          cursor={props.cursor} 
+          metric={props.hourly.dewpoint} 
+        />
       </svg>
     </>
   )
@@ -112,6 +128,22 @@ function PrecipChart(props){
         <path d={precip} stroke="blue" fill="lightblue" opacity="0.5" />
         <TimeLineOverlay stroke="orange" x={props.cursor} />
         <TimeLineOverlay stroke="black" x={props.current} />
+        <MetricReadout 
+          color="#333" 
+          units="%" 
+          range={precip_range} 
+          start={props.day.start} 
+          cursor={props.cursor} 
+          metric={props.hourly.skyCover} 
+        />
+        <MetricReadout 
+          color="blue" 
+          units="%" 
+          range={precip_range} 
+          start={props.day.start} 
+          cursor={props.cursor} 
+          metric={props.hourly.probabilityOfPrecipitation} 
+        />
       </svg>
     </>
   )
@@ -120,7 +152,7 @@ function PrecipChart(props){
 function WindChart(props){
   const interval = 5
   const speed = hourly_path(hourly.windSpeed,props.day.start, v => yval(v,props.wind_range))
-
+  const metric_format = v => v.toFixed(0)
   return (
     <>
       <svg class="lower_chart" viewBox="0 0 240 300" >
@@ -129,6 +161,15 @@ function WindChart(props){
         <path d={speed} stroke="darkblue" fill="none" />
         <TimeLineOverlay stroke="orange" x={props.cursor} />
         <TimeLineOverlay stroke="black" x={props.current} />
+        <MetricReadout 
+          color="darkblue" 
+          units="mph" 
+          range={props.wind_range} 
+          start={props.day.start} 
+          cursor={props.cursor} 
+          metric={props.hourly.windSpeed} 
+          metric_format={metric_format}
+        />
       </svg>
     </>
   )
@@ -179,6 +220,26 @@ function TimeLineOverlay(props){
   )
 }
 
+function MetricReadout(props){
+  const metric_format = props.metric_format || (v => v)
+  let readout = ''
+  if(props.cursor){
+    const metric_y = at_cursor(props.metric,props.cursor,props.start)
+    
+    if(metric_y){
+      const tx = (metric_y.x > 200)?(metric_y.x-40):metric_y.x
+      const m = 4
+      const yv = yval(metric_y.v,props.range)
+      const tyv = (yv > 280)?yv-10:((yv <20)?(yv+10):yv)
+      readout = (<g>
+        <circle cx={metric_y.x} cy={yv} fill={props.color} r="2" />
+        <text fill={props.color} x={tx+m} y={tyv+m}>{metric_format(metric_y.v)}{props.units}</text>
+      </g>)
+    }
+  }
+  return readout
+}
+
 const HOUR_FMT = 'h:mmA'
 const DAY_FMT = 'ddd M/D'
 
@@ -223,4 +284,15 @@ function get_range(metrics){
       if(p.max == null || p.max < v.max){ p.max = v.max }
       return p
   },{min:null,max:null})
+}
+
+function at_cursor(metric,cursor,start){
+  const after = metric
+    .map( h => { 
+      return {x:xval(h.time,start),v:h.value} 
+    })
+    .filter( x => x.x < cursor )
+
+  if(after.length == 0){ return null }
+  return after[after.length - 1]
 }
