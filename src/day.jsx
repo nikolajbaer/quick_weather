@@ -37,9 +37,24 @@ export function Day(props){
     <>
       <div class="day" onMouseMove={track_mouse} ref={day_div} onMouseLeave={clear_mouse}>
         <Summary day={props.day}/>
+        <div class="time_cursor">
+          <CursorTime cursor={cursor} start={props.day.start} />
+          <CursorTime cursor={current} start={props.day.start} />
+        </div>
         <TempChart day={props.day} hourly={hourly} temp_range={temp_range} cursor={cursor} current={current}/>
+        <Legend metrics={[{c:'red',h:'Temp'},{c:'green',h:'Dewpoint'}]} show={props.last} />
+        <div class="time_cursor">
+          <CursorTime cursor={cursor} start={props.day.start} />
+          <CursorTime cursor={current} start={props.day.start} />
+        </div>
         <PrecipChart day={props.day} hourly={hourly} cursor={cursor} current={current} />
+        <Legend metrics={[{c:'#999',h:'Cloud Coverage'},{c:'lightblue',h:'Chance Precip'}]} show={props.last} />
+        <div class="time_cursor">
+          <CursorTime cursor={cursor} start={props.day.start} />
+          <CursorTime cursor={current} start={props.day.start} />
+        </div>
         <WindChart day={props.day} hourly={hourly} wind_range={wind_range} cursor={cursor} current={current} />
+        <Legend metrics={[{c:'darkblue',h:'Wind Speed'}]} show={props.last} />
       </div>
     </>
   ) 
@@ -151,7 +166,7 @@ function PrecipChart(props){
 
 function WindChart(props){
   const interval = 5
-  const speed = hourly_path(hourly.windSpeed,props.day.start, v => yval(v,props.wind_range))
+  const speed = hourly_path(props.hourly.windSpeed,props.day.start, v => yval(v,props.wind_range))
   const metric_format = v => v.toFixed(0)
   return (
     <>
@@ -159,6 +174,13 @@ function WindChart(props){
         <DawnDuskUnderlay day={props.day} />
         <YGridUnderlay range={props.wind_range} interval={interval} />
         <path d={speed} stroke="darkblue" fill="none" />
+        <WindArrows 
+          wind_range={props.wind_range} 
+          speeds={props.hourly.windSpeed} 
+          dirs={props.hourly.windDirection} 
+          start={props.day.start}
+          hour_interval={2}
+        />
         <TimeLineOverlay stroke="orange" x={props.cursor} />
         <TimeLineOverlay stroke="black" x={props.current} />
         <MetricReadout 
@@ -238,6 +260,53 @@ function MetricReadout(props){
     }
   }
   return readout
+}
+
+function CursorTime(props){
+  if(props.cursor){
+    const hour = moment(props.start).add(props.cursor/10,'hours').format('ha')
+    const left = `left: ${(props.cursor/240) * 100}%;`
+    return (
+      <div style={left}>{hour}</div>
+    )
+  }
+  return ''
+}
+
+function Legend(props){
+  let metrics = []
+  if(props.show){
+    metrics = props.metrics.map( m => {
+      return (
+        <div class="metric_box">
+          <span class="metric_color" style={`background-color: ${m.c};`}></span>
+          {m.h}
+        </div>
+      )
+    })
+  }
+  return (<div class="legend">{metrics}</div>)
+}
+
+function WindArrows(props){
+  let i=0
+  let arrows = props.dirs.map( d => {
+    i += 1
+    if(i % props.hour_interval != (props.hour_interval-1)){ return '' }
+    const x = xval(d.time,props.start)
+    const y = yval(props.speeds[i-1].value,props.wind_range) // TODO merge windspeed
+    const r = d.value
+    return (
+      <g transform={`translate(${x},${y}) scale(2) rotate(${r})`}>
+        <polygon points="0, 5 -3, -3 0, -1 3, -3" fill="darkblue" />
+      </g>
+    )
+  })
+  return (
+    <g>
+      {arrows}
+    </g> 
+  )
 }
 
 const HOUR_FMT = 'h:mmA'

@@ -58,9 +58,9 @@ export function Chart(props){
       if(forecast.days[i].start.getDate() < today.getDate() && forecast.days[i].start.getMonth() == today.getMonth()){
         continue
       }
-      const show_left_axis = days.length == 0
-      const show_right_axis = i == 7
-      days.push(<Day day={forecast.days[i]} hourly={forecast.hourly} show_left_axis={show_left_axis} show_right_axis={show_right_axis} />)
+      const first_day = days.length == 0
+      const last_day = i == 7
+      days.push(<Day day={forecast.days[i]} hourly={forecast.hourly} first={first_day} last={last_day} />)
     }
   }
 
