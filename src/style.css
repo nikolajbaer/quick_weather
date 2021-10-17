@@ -104,3 +104,11 @@ svg {
   height: 9px;
   margin-left: 4px;
 }
+.station_detail {
+  font-size: 11px;
+  margin: 0px auto 15px auto;
+  text-align: center;
+}
+.station_detail button {
+  font-size: 10px;
+}

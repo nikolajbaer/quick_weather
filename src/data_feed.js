@@ -16,7 +16,14 @@ export function build_chart_data(latlng){
     const hourly_data = build_hourly_data(result.forecast)
     window.days = days_data
     window.hourly = hourly_data
-    return {days:days_data,hourly:hourly_data,station:result.station}
+    return {
+      days:days_data,
+      hourly:hourly_data,
+      station:result.station,
+      properties:result.forecast.properties,
+      obsv_station: result.obsv_station,
+      latlng: latlng,
+    }
   })
 }
 
@@ -61,16 +68,26 @@ function expand_forecast(values,f){
 // Load forecast for given location from api.weather.gov
 // combine office, grid data, and station information in promises
 function load_forecast(latlng){
+  const param = {
+    method: 'GET',
+    mode: 'no-cors',
+  }
   return fetch(`https://api.weather.gov/points/${latlng.lat.toFixed(4)},${latlng.lng.toFixed(4)}`).then( response => response.json())
     .then( data => {
       return Promise.all([
         fetch(data.properties.forecastOffice).then( response => response.json() ),
         fetch(data.properties.forecastGridData).then( response => response.json() ),
+        fetch(data.properties.observationStations).then( response => response.json() ),
         new Promise( (resolve,reject) => resolve(data)),
-      ])
+      ]).catch(err => { console.error("Failed getting forecast", err)})
     })
     .then( data => {
-      return {station:data[0],forecast:data[1],location:data[2]}
+      return {
+        station: data[0],
+        forecast: data[1],
+        location: data[3],
+        obsv_station: data[2].features[0],
+      }
     })
     .catch(err => {
       console.error('Request failed', err)

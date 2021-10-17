@@ -64,10 +64,24 @@ export function Chart(props){
     }
   }
 
+  let station_detail = ''
+  if(forecast != null){
+    station_detail = (
+      <div class="station_detail">
+        <p>
+          elev: {Math.round(forecast.properties.elevation.value * 3.281).toLocaleString()}ft, 
+          &nbsp; loc: {Math.abs(forecast.latlng.lat.toFixed(4))}°{(forecast.latlng.lat>0)?"N":"S"},{Math.abs(forecast.latlng.lng).toFixed(4)}°{(forecast.latlng.lng>0)?"E":"W"} 
+          &nbsp; id: {forecast.obsv_station.properties.stationIdentifier}  
+        </p>
+      </div>
+    )
+  }
+
   return (
     <>
       <div class="chart">
-        <h1>{forecast==null?"Loading":forecast.station.name}</h1>
+        <h1>{forecast==null?"Loading":forecast.obsv_station.properties.name}</h1>
+        {station_detail}
         <div class="search">
           <input type="text" placeholder="To change location, enter city or zip (USA only)" ref={input_ref} />
           <button onClick={lookup_location}>Go</button>

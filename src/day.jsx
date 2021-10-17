@@ -42,19 +42,19 @@ export function Day(props){
           <CursorTime cursor={current} start={props.day.start} />
         </div>
         <TempChart day={props.day} hourly={hourly} temp_range={temp_range} cursor={cursor} current={current}/>
-        <Legend metrics={[{c:'red',h:'Temp'},{c:'green',h:'Dewpoint'}]} show={props.last} />
+        <Legend metrics={[{c:'red',h:'Temp (°F)'},{c:'green',h:'Dewpoint (°F)'}]} show={props.last} />
         <div class="time_cursor">
           <CursorTime cursor={cursor} start={props.day.start} />
           <CursorTime cursor={current} start={props.day.start} />
         </div>
         <PrecipChart day={props.day} hourly={hourly} cursor={cursor} current={current} />
-        <Legend metrics={[{c:'#999',h:'Cloud Coverage'},{c:'lightblue',h:'Chance Precip'}]} show={props.last} />
+        <Legend metrics={[{c:'#999',h:'Cloud Coverage %'},{c:'lightblue',h:'Chance Precip %'}]} show={props.last} />
         <div class="time_cursor">
           <CursorTime cursor={cursor} start={props.day.start} />
           <CursorTime cursor={current} start={props.day.start} />
         </div>
         <WindChart day={props.day} hourly={hourly} wind_range={wind_range} cursor={cursor} current={current} />
-        <Legend metrics={[{c:'darkblue',h:'Wind Speed'}]} show={props.last} />
+        <Legend metrics={[{c:'darkblue',h:'Wind Speed (mph)'}]} show={props.last} />
       </div>
     </>
   ) 
