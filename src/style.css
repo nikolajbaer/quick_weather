@@ -43,7 +43,7 @@ h1 {
 }
 
 .day .summary {
-  height: 200px;
+  height: 180px;
   font-size: 10pt;
   text-align: center;
 }
@@ -75,7 +75,7 @@ h1 {
   margin: 0px;
 }
 svg {
-  cursor: pointer;
+  cursor: crosshair;
 }
 
 #sources {
@@ -121,4 +121,14 @@ svg {
 .yaxis.left{
   left: -35px;
 }
-
+.weather_cursor {
+  height: 20px;
+  position: relative;
+}
+.weather_cursor div {
+  font-size: 11px;
+  color: #333;
+  position: absolute;
+  width: 150px;
+  font-style: italic;
+}

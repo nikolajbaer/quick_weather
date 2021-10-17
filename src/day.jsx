@@ -32,11 +32,16 @@ export function Day(props){
   const clear_mouse = (event) => {
     setCursor(null)
   }
+  const mouse_click_or_tap = (event) => {
+    const rect = day_div.current.getBoundingClientRect();
+    setCursor(((event.pageX - rect.left)/day_div.current.clientWidth) * 240)
+  }
 
   return (
     <>
-      <div class="day" onMouseMove={track_mouse} ref={day_div} onMouseLeave={clear_mouse}>
+      <div class="day" onClick={mouse_click_or_tap} onMouseMove={track_mouse} ref={day_div} onMouseLeave={clear_mouse}>
         <Summary day={props.day}/>
+        <CursorWeather start={props.day.start} weather={props.hourly.weather} cursor={cursor} />
         <div class="time_cursor">
           <CursorTime cursor={cursor} start={props.day.start} />
           <CursorTime cursor={current} start={props.day.start} />
@@ -306,6 +311,28 @@ function CursorTime(props){
     )
   }
   return ''
+}
+
+function CursorWeather(props){
+  let weather_cursor = ''
+  if(props.cursor){
+    const weather_data = at_cursor(props.weather,props.cursor,props.start)
+    if(weather_data != null){
+      const weather = weather_data.v.value[0]
+      const left = `left: ${(props.cursor/240) * 100}%;`
+      if(weather && weather.weather){
+        const weather_cursor_text = [weather.coverage,weather.intensity,weather.weather]
+          .filter( v=> v!= null)
+          .join(' ')
+          .replace('_',' ')
+        weather_cursor = (
+          <div style={left}>☁️ {weather_cursor_text}</div>
+        )
+      }
+
+    }
+  }
+  return (<div class="weather_cursor">{weather_cursor}</div>)
 }
 
 function Legend(props){

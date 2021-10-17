@@ -105,6 +105,7 @@ const metrics = [
   ['windSpeed', d => d.value],
   ['windDirection', d => d.value],
   ['pressure', d => d.value],
+  ['weather', d => d ]
 ]
 
 
