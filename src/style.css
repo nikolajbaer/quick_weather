@@ -31,6 +31,7 @@ h1 {
 .day {
   width: 12.5%;
   min-width: 120px;
+  position: relative;
   /*
   border-right: 1px solid #333;
   border-top: 1px solid #333;
@@ -112,3 +113,12 @@ svg {
 .station_detail button {
   font-size: 10px;
 }
+
+.yaxis {
+  position: absolute;
+  font-size: 10px;
+}
+.yaxis.left{
+  left: -35px;
+}
+

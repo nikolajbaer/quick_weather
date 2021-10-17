@@ -41,19 +41,19 @@ export function Day(props){
           <CursorTime cursor={cursor} start={props.day.start} />
           <CursorTime cursor={current} start={props.day.start} />
         </div>
-        <TempChart day={props.day} hourly={hourly} temp_range={temp_range} cursor={cursor} current={current}/>
+        <TempChart day={props.day} hourly={hourly} temp_range={temp_range} cursor={cursor} current={current} show_yaxis={props.first}/>
         <Legend metrics={[{c:'red',h:'Temp (°F)'},{c:'green',h:'Dewpoint (°F)'}]} show={props.last} />
         <div class="time_cursor">
           <CursorTime cursor={cursor} start={props.day.start} />
           <CursorTime cursor={current} start={props.day.start} />
         </div>
-        <PrecipChart day={props.day} hourly={hourly} cursor={cursor} current={current} />
+        <PrecipChart day={props.day} hourly={hourly} cursor={cursor} current={current} show_left_yaxis={props.first} show_right_yaxis={props.last} />
         <Legend metrics={[{c:'#999',h:'Cloud Coverage %'},{c:'lightblue',h:'Chance Precip %'}]} show={props.last} />
         <div class="time_cursor">
           <CursorTime cursor={cursor} start={props.day.start} />
           <CursorTime cursor={current} start={props.day.start} />
         </div>
-        <WindChart day={props.day} hourly={hourly} wind_range={wind_range} cursor={cursor} current={current} />
+        <WindChart day={props.day} hourly={hourly} wind_range={wind_range} cursor={cursor} current={current} show_yaxis={props.first} />
         <Legend metrics={[{c:'darkblue',h:'Wind Speed (mph)'}]} show={props.last} />
       </div>
     </>
@@ -93,11 +93,17 @@ function TempChart(props){
   const temp = hourly_path(hourly.temperature,props.day.start, v => yval(v,props.temp_range))
   const dewpoint = hourly_path(hourly.dewpoint,props.day.start, v => yval(v,props.temp_range))
 
+  let yaxis = ''
+  if(props.show_yaxis){
+    yaxis = (<YAxisLabels side="left" range={props.temp_range} interval={interval} label_format={(v)=>v.toFixed(0)+'°F'}/>)
+  }
+
   return (
     <>
       <svg viewBox="0 0 240 300" >
         <DawnDuskUnderlay day={props.day} />
         <YGridUnderlay range={props.temp_range} interval={interval} />
+        {yaxis}
         <path d={temp} stroke="red" fill="none" />
         <path d={dewpoint} stroke="green" fill="none" />
         <TimeLineOverlay stroke="orange" x={props.cursor} />
@@ -134,11 +140,33 @@ function PrecipChart(props){
   // Right Axis - TODO 4 bar 
   //const pressure = hourly_path(hourly.dewpoint,props.day.start, v => yval(v,precip_range))
 
+  let left_yaxis = ''
+  if(props.show_left_yaxis){
+    left_yaxis = (
+    <YAxisLabels 
+      side="left" 
+      range={precip_range} 
+      label_format={(v) => (v.toFixed(0)+"%")}
+      interval={interval} />
+    )
+  }
+  /*
+  if(props.show_yaxis_right){
+    yaxis = (
+    <YAxisLabels 
+      side="right" 
+      range={props.pressure_range} 
+      label_fmt={(v) => (v.toFixed(0)+"%")}
+      interval={interval} />
+    )
+  }*/
+
   return (
     <>
       <svg class="lower_chart" viewBox="0 0 240 300" >
         <DawnDuskUnderlay day={props.day} />
         <YGridUnderlay range={precip_range} interval={interval} />
+        {left_yaxis}
         <path d={cloud} stroke="#333" fill="#999" opacity="0.3" />
         <path d={precip} stroke="blue" fill="lightblue" opacity="0.5" />
         <TimeLineOverlay stroke="orange" x={props.cursor} />
@@ -168,11 +196,18 @@ function WindChart(props){
   const interval = 5
   const speed = hourly_path(props.hourly.windSpeed,props.day.start, v => yval(v,props.wind_range))
   const metric_format = v => v.toFixed(0)
+
+  let yaxis = ''
+  if(props.show_yaxis){
+    yaxis = (<YAxisLabels side="left" range={props.wind_range} interval={interval} label_format={v=>v.toFixed(0)+' mph'} />)
+  }
+
   return (
     <>
       <svg class="lower_chart" viewBox="0 0 240 300" >
         <DawnDuskUnderlay day={props.day} />
         <YGridUnderlay range={props.wind_range} interval={interval} />
+        {yaxis}
         <path d={speed} stroke="darkblue" fill="none" />
         <WindArrows 
           wind_range={props.wind_range} 
@@ -306,6 +341,22 @@ function WindArrows(props){
     <g>
       {arrows}
     </g> 
+  )
+}
+
+function YAxisLabels(props){
+  const label_format = props.label_format || (v => v.toFixed(0))
+  const labels = []
+  let t = props.range.min
+  while(t < props.range.max){
+    const y = yval(t,props.range)
+    labels.push(<text x={props.side=="left"?0:220} y={y-2} fill="#aaa">{label_format(t)}</text>)
+    t += props.interval
+  }
+  return (
+    <g>
+      {labels}
+    </g>
   )
 }
 
