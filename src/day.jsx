@@ -53,7 +53,7 @@ export function Day(props){
           <CursorTime cursor={current} start={props.day.start} />
         </div>
         <PrecipChart day={props.day} hourly={hourly} cursor={cursor} current={current} show_left_yaxis={props.first} show_right_yaxis={props.last} />
-        <Legend metrics={[{c:'#999',h:'Cloud Coverage %'},{c:'lightblue',h:'Chance Precip %'}]} show={props.last} />
+        <Legend metrics={[{c:'#999',h:'Cloud Coverage %'},{c:'lightblue',h:'Chance Precip %'},{c:'green',h:'Humidity %'},{c:'magenta',h:'Snow'}]} show={props.last} />
         <div class="time_cursor">
           <CursorTime cursor={cursor} start={props.day.start} />
           <CursorTime cursor={current} start={props.day.start} />
@@ -68,16 +68,29 @@ export function Day(props){
 
 function Summary(props){
   const title = moment(props.day.start).format(DAY_FMT)
-  const weather = determine_weather(props.day)
-  const precip_total = props.day.precip_total.toFixed(2) + ' in'
-  const precip_type = (props.day.precip_total>0?'💧':'') // TODO snow
+
+  // convert from mm to in
+  let precip_total = '-'
+  let precip_type = ''
+  if(props.day.precip_total.snow){
+    const snow_amt = props.day.precip_total.snow / 25.4
+    if(snow_amt >= 12){
+      precip_total = (snow_amt/12).toFixed(1) + ' ft'
+    }else{
+      precip_total = (snow_amt).toFixed(1) + ' in'
+    }
+    precip_type = '❄️'
+  }else if(props.day.precip_total.rain > 0){
+    precip_total = (props.day.precip_total.rain / 25.4).toFixed(2) + ' in'
+    precip_type = '💧'
+  }
 
   return (
     <>
       <div class="summary">
         <h3>{title}</h3>
-        <p class="weather">{weather.i}</p>
-        <p>{weather.n}</p>
+        <p class="weather">X</p>
+        <p>{props.day.day_weather?props.day.day_weather.shortForecast:props.day.night_weather.shortForecast}</p>
         <p class="temp">
           <span class="maxtemp">{formatTemp(props.day.temp.max)}</span> |&nbsp;
           <span class="mintemp">{formatTemp(props.day.temp.min)}</span>
@@ -139,7 +152,9 @@ function PrecipChart(props){
   const interval = 25
   const humidity = hourly_path(hourly.relativeHumidity,props.day.start, v => yval(v,precip_range))
   const precip = hourly_path(hourly.probabilityOfPrecipitation,props.day.start, v => yval(v,precip_range),true)
-  // TODO how do i determine if it is now? snowfallAmount?
+
+  // TODO how do i determine if it is now? snowfallAmount > 0?
+
   const cloud = hourly_path(hourly.skyCover,props.day.start, v => yval(v,precip_range),true)
 
   // Right Axis - TODO 4 bar 
@@ -156,6 +171,7 @@ function PrecipChart(props){
     )
   }
   /*
+  // Once we get pressure..
   if(props.show_yaxis_right){
     yaxis = (
     <YAxisLabels 
@@ -174,6 +190,7 @@ function PrecipChart(props){
         {left_yaxis}
         <path d={cloud} stroke="#333" fill="#999" opacity="0.3" />
         <path d={precip} stroke="blue" fill="lightblue" opacity="0.5" />
+        <path d={humidity} stroke="green" fill="none" />
         <TimeLineOverlay stroke="orange" x={props.cursor} />
         <TimeLineOverlay stroke="black" x={props.current} />
         <MetricReadout 
@@ -191,6 +208,14 @@ function PrecipChart(props){
           start={props.day.start} 
           cursor={props.cursor} 
           metric={props.hourly.probabilityOfPrecipitation} 
+        />
+        <MetricReadout 
+          color="green" 
+          units="%" 
+          range={precip_range} 
+          start={props.day.start} 
+          cursor={props.cursor} 
+          metric={props.hourly.relativeHumidity} 
         />
       </svg>
     </>
@@ -393,7 +418,7 @@ const DAY_FMT = 'ddd M/D'
 function formatTemp(C){ return (Math.round((C*(9/5)) + 32) + "°F") }
 
 function determine_weather(weather){
-  if(weather.precip_total > 0){ return {n:"Rainy",i:"☔"} }  // todo drizzle, rain, snow
+  if(weather.precip_total > 0){return {n:"Rainy",i:"☔"} }  // todo drizzle, rain, snow
   if(weather.skyCover > 50){ return {n:"Cloudy",i:"☁️"}; } 
   if(weather.skyCover > 10){ return {n:"Partly Cloudy",i:"⛅"}; }
   return {n:"Sunny",i:"☀️"};

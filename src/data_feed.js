@@ -12,7 +12,7 @@ export function build_chart_data(latlng){
     window.data = result // debug
     return result
   }).then( result =>{
-    const days_data = build_days_data(result.forecast,latlng)
+    const days_data = build_days_data(result.forecast,result.day_forecast,latlng)
     const hourly_data = build_hourly_data(result.forecast)
     window.days = days_data
     window.hourly = hourly_data
@@ -59,10 +59,17 @@ function expand_forecast(values,f){
         gmtTime: t1.toGMTString(), 
         time: t1,
         value: f!=null?f(d):d,
+        expanded_hours: td.hours,
       })
     }
   })
   return data;
+}
+
+function sum_amount(values,start){
+  return expand_forecast(values)
+        .filter(d => moment(d.time).isSame(start,'day'))
+        .reduce((pv,cv) => pv + cv.value.value/cv.expanded_hours, 0)
 }
 
 // Load forecast for given location from api.weather.gov
@@ -79,6 +86,7 @@ function load_forecast(latlng){
         fetch(data.properties.forecastGridData).then( response => response.json() ),
         fetch(data.properties.observationStations).then( response => response.json() ),
         new Promise( (resolve,reject) => resolve(data)),
+        fetch(data.properties.forecast).then( response => response.json() ),
       ]).catch(err => { console.error("Failed getting forecast", err)})
     })
     .then( data => {
@@ -86,6 +94,7 @@ function load_forecast(latlng){
         station: data[0],
         forecast: data[1],
         location: data[3],
+        day_forecast: data[4],
         obsv_station: data[2].features[0],
       }
     })
@@ -110,7 +119,7 @@ const metrics = [
 
 
 // TODO Tides https://api.tidesandcurrents.noaa.gov/api/prod/
-function build_days_data(forecast,latlng){
+function build_days_data(forecast,day_forecast,latlng){
   const days = [];
   const forecast_start = moment.parseZone(forecast.properties.validTimes.split('/')[0]).toDate()
   
@@ -127,16 +136,30 @@ function build_days_data(forecast,latlng){
     const noon = start.startOf('day').add(12,'hours').toDate()
     
     const day_start = start.startOf('day').toDate()
-    const inclement = forecast_for_time("weather",noon,forecast)
-    const precip_total = forecast_for_time("quantitativePrecipitation",noon,forecast).value.value * 0.393701 * .1 // inches
-    const skyCover = forecast_for_time("skyCover",noon,forecast).value.value
-    
+    const day_weather = day_forecast.properties.periods.filter(f => f.isDaytime && moment(f.startTime).isSame(start,'day'))
+    const night_weather = day_forecast.properties.periods.filter(f => !f.isDaytime && moment(f.startTime).isSame(start,'day'))
+
+    // this doesn't really differentiate between snow/rain,but sum quantprecip for the day
+    //const precip_total = can't use expand_forecast unless we split total across timespan
+    //console.log(precip_total)
+
+    const precip_total = {
+      rain:sum_amount(forecast.properties.quantitativePrecipitation.values,start),
+      snow:sum_amount(forecast.properties.snowfallAmount.values,start),
+    }
+    console.log(precip_total)
+
+    // both in mm
+    // snowfallAmount
+    // quantitativePrecipitation
+
+    //* 0.393701 * .1 // inches
     const day = {
       start: start.startOf('day').toDate(),
       end: start.endOf('day').toDate(),
       noon: noon,
-      inclement: inclement,
-      skyCover: skyCover,
+      day_weather: day_weather.length>0?day_weather[0]:null,
+      night_weather: night_weather.length>0?night_weather[0]:null,
       temp:{
         min:forecast_for_time("minTemperature",day_start,forecast).value.value,
         max:forecast_for_time("maxTemperature",day_start,forecast).value.value,
