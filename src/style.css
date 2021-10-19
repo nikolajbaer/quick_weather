@@ -44,7 +44,7 @@ h1 {
 
 .day .summary {
   height: 180px;
-  font-size: 10pt;
+  font-size: 11px;
   text-align: center;
 }
 .day .summary p {
@@ -131,4 +131,9 @@ svg {
   position: absolute;
   width: 150px;
   font-style: italic;
+}
+#map {
+  width: 300px;
+  height: 200px;
+  margin: auto;
 }

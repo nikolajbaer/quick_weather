@@ -70,32 +70,36 @@ function Summary(props){
   const title = moment(props.day.start).format(DAY_FMT)
 
   // convert from mm to in
-  let precip_total = '-'
-  let precip_type = ''
+  let snow_amt = ''
   if(props.day.precip_total.snow){
-    const snow_amt = props.day.precip_total.snow / 25.4
+    snow_amt = props.day.precip_total.snow / 25.4
     if(snow_amt >= 12){
-      precip_total = (snow_amt/12).toFixed(1) + ' ft'
+      snow_amt = (snow_amt/12).toFixed(1) + ' ft'
     }else{
-      precip_total = (snow_amt).toFixed(1) + ' in'
+      snow_amt = (snow_amt).toFixed(1) + ' in'
     }
-    precip_type = '❄️'
-  }else if(props.day.precip_total.rain > 0){
-    precip_total = (props.day.precip_total.rain / 25.4).toFixed(2) + ' in'
-    precip_type = '💧'
+    snow_amt =  snow_amt + '❄️'
   }
+  let rain_amt = ''
+  if(props.day.precip_total.rain > 0){
+    rain_amt = (props.day.precip_total.rain / 25.4).toFixed(2) + ' in 💧'
+  }
+
+  let short_forecast = ''
+  if(props.day.day_weather){  short_forecast = props.day.day_weather.shortForecast }
+  else if(props.day.night_weather){ short_forecast = props.day.night_weather.shortForecast }
 
   return (
     <>
       <div class="summary">
         <h3>{title}</h3>
-        <p class="weather">X</p>
-        <p>{props.day.day_weather?props.day.day_weather.shortForecast:props.day.night_weather.shortForecast}</p>
+        <p class="weather">{props.day.icon}</p>
+        <p>{short_forecast}</p>
         <p class="temp">
           <span class="maxtemp">{formatTemp(props.day.temp.max)}</span> |&nbsp;
           <span class="mintemp">{formatTemp(props.day.temp.min)}</span>
         </p>
-        <p class="precip">{precip_total} {precip_type}</p>
+        <p class="precip">{snow_amt} {rain_amt}</p>
         <ul>
           <li>Sunrise: {moment(props.day.sun.sunrise).format(HOUR_FMT)}</li>
           <li>Sunset: {moment(props.day.sun.sunset).format(HOUR_FMT)}</li>

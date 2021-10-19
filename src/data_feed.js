@@ -8,7 +8,7 @@ import "leaflet/dist/leaflet.css"
 
 export function build_chart_data(latlng){
   return load_forecast(latlng).then( result => {
-    console.log(result)
+    console.log("Raw Forecast Data",result)
     window.data = result // debug
     return result
   }).then( result =>{
@@ -59,7 +59,7 @@ function expand_forecast(values,f){
         gmtTime: t1.toGMTString(), 
         time: t1,
         value: f!=null?f(d):d,
-        expanded_hours: td.hours,
+        expanded_hours: hours,
       })
     }
   })
@@ -114,7 +114,9 @@ const metrics = [
   ['windSpeed', d => d.value],
   ['windDirection', d => d.value],
   ['pressure', d => d.value],
-  ['weather', d => d ]
+  ['weather', d => d ],
+  ['quantitativePrecipitation', d => d.value ],
+  ['snowfallAmount', d => d.value ],
 ]
 
 
@@ -127,7 +129,6 @@ function build_days_data(forecast,day_forecast,latlng){
   // All incoming times are in UTC +00, but we want to show local time per
   // user's browser
   const offset = new Date().getTimezoneOffset()
-  console.log("Starts at",forecast_start)
 
   // build a list of our 8 days, start and end, noon, and sun times
   var j = 0
@@ -139,15 +140,10 @@ function build_days_data(forecast,day_forecast,latlng){
     const day_weather = day_forecast.properties.periods.filter(f => f.isDaytime && moment(f.startTime).isSame(start,'day'))
     const night_weather = day_forecast.properties.periods.filter(f => !f.isDaytime && moment(f.startTime).isSame(start,'day'))
 
-    // this doesn't really differentiate between snow/rain,but sum quantprecip for the day
-    //const precip_total = can't use expand_forecast unless we split total across timespan
-    //console.log(precip_total)
-
     const precip_total = {
       rain:sum_amount(forecast.properties.quantitativePrecipitation.values,start),
       snow:sum_amount(forecast.properties.snowfallAmount.values,start),
     }
-    console.log(precip_total)
 
     // both in mm
     // snowfallAmount
@@ -158,6 +154,7 @@ function build_days_data(forecast,day_forecast,latlng){
       start: start.startOf('day').toDate(),
       end: start.endOf('day').toDate(),
       noon: noon,
+      icon: (precip_total.snow)?'🌨️':((precip_total.rain)?'🌧️️':'⛅'), // sometimes we don't get the last day icon from the day forecast, so fudge it
       day_weather: day_weather.length>0?day_weather[0]:null,
       night_weather: night_weather.length>0?night_weather[0]:null,
       temp:{
@@ -167,6 +164,23 @@ function build_days_data(forecast,day_forecast,latlng){
       sun:SunCalc.getTimes(noon, latlng.lat,latlng.lng),
       precip_total: precip_total,
     }
+
+    // Determine a simplified icon from the NWS icon url (but don't use their icon)
+    const icon_url = (day.day_weather)?day.day_weather.icon:((day.night_weather)?day.night_weather.icon:null)
+    if(icon_url){
+      const icon_match = /.*land\/day\/([a-z\/]+)/.exec(icon_url)
+      if(icon_match){
+        let icon = icon_match[1]
+        // sometimes they have doubled up icons, e.g. fog/sct
+        // we will go for the second one? or should we combine them?
+        if(icon.split('/').length > 1){ 
+          icon = icon.split('/')[1]
+        }
+        console.log(day.start,icon_url,icon)
+        day.icon = ICON_MAP[icon] || ''
+      }
+    }
+
     days.push(day)
   }
   return days
@@ -224,4 +238,13 @@ export function init_chart_data(){
     console.error(error)
     return build_chart_data({lat:32.7499568,lng:-117.2521772})
   })
+}
+
+const ICON_MAP = {
+  'rain': '🌧️',
+  'rain_showers': '🌧️',
+  'sct': '⛅',
+  'bkn': '☁️',
+  'snow': '🌨️',
+  'fog': '🌫️',
 }

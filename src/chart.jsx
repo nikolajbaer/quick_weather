@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from 'preact/hooks';
 import {build_chart_data,browser_location} from './data_feed.js';
 import { Day } from './day.jsx'
+import { Map } from './map.jsx'
 
 function useForecastData(){
   const [forecast,setForecast] = useState(null);
@@ -16,6 +17,7 @@ function useForecastData(){
 export function Chart(props){
   const { forecast, updateForecast} = useForecastData()
   const input_ref = useRef(null)
+  const [map_visible,setMapVisible] = useState(false)
 
   const lookup_location = (event) => {
     if(input_ref.current.value.length < 5){
@@ -27,11 +29,8 @@ export function Chart(props){
       ).then( response => response.json() ).then( data => {
         if(data.length > 0){
           const latlng = {lat:Number(data[0].lat),lng:Number(data[0].lon)}
-
-          const url = new URL(window.location)
-          url.searchParams.set('lat',latlng.lat.toFixed(5))
-          url.searchParams.set('lng',latlng.lng.toFixed(5))
-          window.history.pushState({}, '', url)
+          
+          update_browser_location(latlng)
 
           updateForecast(latlng).then((result) => {
             input_ref.current.disabled = false
@@ -56,12 +55,17 @@ export function Chart(props){
   const my_location = (event) => {
     input_ref.current.value = ""
     browser_location().then( latlng => {
+      update_browser_location(latlng)
       return updateForecast(latlng)
     }).catch( error => {
       // TODO Notify user we can't get their proper location
       // and Show them Ocean Beach, San Diego, CA =]
       return updateForecast({lat:32.7499568,lng:-117.2521772})
     })
+  }
+
+  const show_map = (event) => {
+    setMapVisible(!map_visible)
   }
 
   useEffect(() => {
@@ -101,7 +105,7 @@ export function Chart(props){
     station_detail = (
       <div class="station_detail">
         <p>
-          {forecast.station.name}
+          Nearest Observation Station: {forecast.obsv_station.properties.name}<br/>
           &nbsp; elev: {Math.round(forecast.obsv_station.properties.elevation.value * 3.281).toLocaleString()}ft, 
           &nbsp; loc: {Math.abs(forecast.latlng.lat.toFixed(4))}°{(forecast.latlng.lat>0)?"N":"S"},{Math.abs(forecast.latlng.lng).toFixed(4)}°{(forecast.latlng.lng>0)?"E":"W"}
           &nbsp; id: {forecast.obsv_station.properties.stationIdentifier}  
@@ -110,16 +114,23 @@ export function Chart(props){
     )
   }
 
+  let map = ''
+  if(map_visible){
+    map = <Map data={forecast} center={forecast.latlng} />
+  }
+
   return (
     <>
       <div class="chart">
-        <h1>{forecast==null?"Loading":forecast.obsv_station.properties.name}</h1>
+        <h1>{forecast==null?"Loading":forecast.station.name}</h1>
         {station_detail}
         <div class="search">
           <input type="text" placeholder="To change location, enter city or zip (USA only)" ref={input_ref} onKeyPress={lookup_keypress} />
           <button onClick={lookup_location}>Go</button>
           <button onClick={my_location}>Use My Location</button>
+          <button onClick={show_map}>{map_visible?"Hide Map":"Show Map"}</button>
         </div>
+        {map}
         <div class="days">
           {days}
         </div>
@@ -130,4 +141,11 @@ export function Chart(props){
       </div>
     </>
   )
+}
+
+function update_browser_location(latlng){
+  const url = new URL(window.location)
+  url.searchParams.set('lat',latlng.lat.toFixed(5))
+  url.searchParams.set('lng',latlng.lng.toFixed(5))
+  window.history.pushState({}, '', url)
 }
