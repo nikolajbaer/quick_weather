@@ -23,6 +23,7 @@ export function build_chart_data(latlng){
       properties:result.forecast.properties,
       obsv_station: result.obsv_station,
       latlng: latlng,
+      raw: result,
     }
   })
 }
@@ -244,7 +245,10 @@ const ICON_MAP = {
   'rain': '🌧️',
   'rain_showers': '🌧️',
   'sct': '⛅',
+  'skc': '☀️',
+  'few': '☀️',
   'bkn': '☁️',
   'snow': '🌨️',
   'fog': '🌫️',
+  'tsra': '🌩️',
 }

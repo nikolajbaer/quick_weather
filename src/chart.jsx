@@ -116,6 +116,7 @@ export function Chart(props){
 
   let map = ''
   if(map_visible){
+    // send raw data since it has a lot of geojson in it
     map = <Map data={forecast} center={forecast.latlng} />
   }
 

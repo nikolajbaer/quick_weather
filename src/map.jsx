@@ -25,31 +25,27 @@ export function Map(props){
 }
 
 function build_map(element,latlng){
-  let map = L.map(element).setView([latlng.lat,latlng.lng], 14);
+  let map = L.map(element).setView([latlng.lat,latlng.lng], 12);
   let osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 	    maxZoom: 19,
-	    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+	    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      pane: 'tilePane'
   }).addTo(map);
   return map
 }
 
 function update_map(map,latlng,data){
-  map.setView([latlng.lat,latlng.lng],14)
-  L.marker([data.latlng.lat,data.latlng.lng]).addTo(map)
-    .bindPopup(data.station.name);
-  L.geoJSON([data], {
+  map.eachLayer( l => {
+    if(l.options.pane == 'overlayPane'){ l.remove() }
+  }) 
+  map.setView([latlng.lat,latlng.lng],12)
+  L.marker([latlng.lat,latlng.lng],{pane:'overlayPane'}).addTo(map)
+    .bindPopup(data.station.name)
+  L.geoJSON(data.raw.forecast, {
 		style: function (feature) {
 			return feature.properties && feature.properties.style;
 		},
-    pointToLayer: function (feature, latlng) {
-			return L.circleMarker(latlng, {
-				radius: 8,
-				fillColor: "#ff7800",
-				color: "#000",
-				weight: 1,
-				opacity: 1,
-				fillOpacity: 0.8
-			});
-		}
-	}).addTo(map);
+	}).addTo(map)
+  console.log(data.raw.forecast.geometry.coordinates[0])
+  console.log(latlng)
 }
