@@ -155,9 +155,22 @@ function PrecipChart(props){
   const precip_range = {min:0,max:100}
   const interval = 25
   const humidity = hourly_path(hourly.relativeHumidity,props.day.start, v => yval(v,precip_range))
-  const precip = hourly_path(hourly.probabilityOfPrecipitation,props.day.start, v => yval(v,precip_range),true)
 
-  // TODO how do i determine if it is now? snowfallAmount > 0?
+  const precip = hourly_path(hourly.probabilityOfPrecipitation,props.day.start, v => yval(v,precip_range))
+
+  // combine precip with snowfall
+  const rain = []
+  const snow = []
+  for(var i=0; i<hourly.probabilityOfPrecipitation.length; i++ ){
+    const popv = hourly.probabilityOfPrecipitation[i]
+    if(i < hourly.snowfallAmount.length){
+      snow.push({value:(hourly.snowfallAmount[i].value > 0)?popv.value:0,time:popv.time})
+      rain.push({value:(hourly.snowfallAmount[i].value == 0)?popv.value:0,time:popv.time})
+    }
+  }
+  //console.log(snow,rain)
+  const rain_path = hourly_path(rain,props.day.start, v => yval(v,precip_range))
+  const snow_path = hourly_path(snow,props.day.start, v => yval(v,precip_range))
 
   const cloud = hourly_path(hourly.skyCover,props.day.start, v => yval(v,precip_range),true)
 
@@ -193,8 +206,10 @@ function PrecipChart(props){
         <YGridUnderlay range={precip_range} interval={interval} />
         {left_yaxis}
         <path d={cloud} stroke="#333" fill="#999" opacity="0.3" />
-        <path d={precip} stroke="blue" fill="lightblue" opacity="0.5" />
+        <path d={precip} stroke="blue" fill="none" opacity="0.5" />
         <path d={humidity} stroke="green" fill="none" />
+        <path d={rain_path} stroke="none" fill="lightblue" opacity="0.5" />
+        <path d={snow_path} stroke="none" fill="purple" opacity="0.5" />
         <TimeLineOverlay stroke="orange" x={props.cursor} />
         <TimeLineOverlay stroke="black" x={props.current} />
         <MetricReadout 
@@ -389,7 +404,7 @@ function WindArrows(props){
     const r = d.value
     return (
       <g transform={`translate(${x},${y}) scale(2) rotate(${r})`}>
-        <polygon points="0, 5 -3, -3 0, -1 3, -3" fill="darkblue" />
+        <polygon points="0, 5 -3, -3 0, -1 3, -3" stroke="darkblue" storkeWidth="0.1" fill={wind_fill(props.speeds[i-1].value)} />
       </g>
     )
   })
@@ -472,3 +487,20 @@ function at_cursor(metric,cursor,start){
   if(after.length == 0){ return null }
   return after[after.length - 1]
 }
+
+// Beaufort Scale Colors
+function wind_fill(v){
+  for(var i=0; i<wind_force_colors.length; i++){
+    if(v < wind_force_colors[i].v){
+      return wind_force_colors[i].c
+    }
+  }
+}
+const wind_force_colors = [
+  {v:10,c:'lightgreen'},
+  {v:16,c:'lightblue'}, // color for less than v
+  {v:26,c:'darkblue'},
+  {v:34,c:'purple'},
+  {v:48,c:'orange'},
+  {v:1000,c:'red'}, // max
+]
