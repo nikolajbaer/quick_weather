@@ -53,7 +53,7 @@ export function Day(props){
           <CursorTime cursor={current} start={props.day.start} />
         </div>
         <PrecipChart day={props.day} hourly={hourly} cursor={cursor} current={current} show_left_yaxis={props.first} show_right_yaxis={props.last} />
-        <Legend metrics={[{c:'#999',h:'Cloud Coverage %'},{c:'lightblue',h:'Chance Precip %'},{c:'green',h:'Humidity %'},{c:'magenta',h:'Snow'}]} show={props.last} />
+        <Legend metrics={[{c:'#999',h:'Cloud Coverage %'},{c:'lightblue',h:'Chance Precip %'},{c:'green',h:'Humidity %'},{c:'darkorchid',h:'Snow'}]} show={props.last} />
         <div class="time_cursor">
           <CursorTime cursor={cursor} start={props.day.start} />
           <CursorTime cursor={current} start={props.day.start} />
@@ -158,24 +158,38 @@ function PrecipChart(props){
 
   const precip = hourly_path(hourly.probabilityOfPrecipitation,props.day.start, v => yval(v,precip_range))
 
-  // combine precip with snowfall
-  const rain = []
-  const snow = []
+  // combine precip with snowfall so we can change the color
+  // of the precipitation area depending on anticipated type
+  // Assumption is that if we have any snowfall amount, then we call it snow
+  // otherwise it is rain 
+
+  const precip_areas = []
+  let cur_area = {type:'rain',vals:[]}
+  let was_snowing = null
   for(var i=0; i<hourly.probabilityOfPrecipitation.length; i++ ){
     const popv = hourly.probabilityOfPrecipitation[i]
-    if(i < hourly.snowfallAmount.length){
-      snow.push({value:(hourly.snowfallAmount[i].value > 0)?popv.value:0,time:popv.time})
-      rain.push({value:(hourly.snowfallAmount[i].value == 0)?popv.value:0,time:popv.time})
+    const snowing = ( (i < hourly.snowfallAmount.length) && hourly.snowfallAmount[i].value > 0 ) || ( i < hourly.temperature.length && hourly.temperature[i].value < 32 )
+    if(i == 0 && snowing){ 
+      cur_area.vals.push({value:0,time:popv.time})
+      cur_area.type = "snow" 
+    }else if(snowing != was_snowing){
+      cur_area.vals.push({value:popv.value,time:popv.time})
+      cur_area.vals.push({value:0,time:popv.time})
+      precip_areas.push(cur_area)
+      cur_area = {type:(snowing)?'snow':'rain',vals:[{value:0,time:popv.time}]}
     }
+    cur_area.vals.push({value:popv.value,time:popv.time})
+    was_snowing = snowing
   }
-  //console.log(snow,rain)
-  const rain_path = hourly_path(rain,props.day.start, v => yval(v,precip_range))
-  const snow_path = hourly_path(snow,props.day.start, v => yval(v,precip_range))
+  cur_area.vals.push({value:0,time:cur_area.vals[cur_area.vals.length-1].time})
+  precip_areas.push(cur_area)
+
+  const precip_paths = precip_areas.map( pa => {
+    const path = hourly_path(pa.vals,props.day.start, v => yval(v,precip_range))
+    return <path d={path} stroke="none" fill={pa.type=="rain"?"lightblue":"purple"} opacity="0.5" />
+  })
 
   const cloud = hourly_path(hourly.skyCover,props.day.start, v => yval(v,precip_range),true)
-
-  // Right Axis - TODO 4 bar 
-  //const pressure = hourly_path(hourly.dewpoint,props.day.start, v => yval(v,precip_range))
 
   let left_yaxis = ''
   if(props.show_left_yaxis){
@@ -187,8 +201,11 @@ function PrecipChart(props){
       interval={interval} />
     )
   }
+
   /*
   // Once we get pressure..
+  // Right Axis - TODO 4 bar 
+  //const pressure = hourly_path(hourly.dewpoint,props.day.start, v => yval(v,precip_range))
   if(props.show_yaxis_right){
     yaxis = (
     <YAxisLabels 
@@ -207,9 +224,8 @@ function PrecipChart(props){
         {left_yaxis}
         <path d={cloud} stroke="#333" fill="#999" opacity="0.3" />
         <path d={precip} stroke="blue" fill="none" opacity="0.5" />
+        {precip_paths}
         <path d={humidity} stroke="green" fill="none" />
-        <path d={rain_path} stroke="none" fill="lightblue" opacity="0.5" />
-        <path d={snow_path} stroke="none" fill="purple" opacity="0.5" />
         <TimeLineOverlay stroke="orange" x={props.cursor} />
         <TimeLineOverlay stroke="black" x={props.current} />
         <MetricReadout 
