@@ -2,13 +2,19 @@ version: '3.4'
 
 services:
   node:
-    image: "node:14"
-    user: "node"
-    working_dir: /home/node/app
-    environment:
-      - NODE_ENV=development
-    volumes:
-      - ./:/home/node/app
     ports:
       - "8080:8080"
     command: "npm run dev"
+    <<: &COMMON
+      image: "node:14"
+      user: "node"
+      working_dir: /home/node/app
+      environment:
+        - NODE_ENV=development
+      volumes:
+        - ./:/home/node/app
+  functions:
+    ports:
+      - "9999:9999"
+    command: "npx netlify functions:serve"
+    <<: *COMMON
