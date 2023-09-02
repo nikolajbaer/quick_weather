@@ -42,9 +42,23 @@ export async function load_tides(latlng){
   const tides = await fetch(
     `https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?${params}`
   ).then(response=>response.json())
+  const tempParams = new URLSearchParams({
+    date: 'today',
+    station: nearest.id,
+    product: 'water_temperature',
+    units: 'english',
+    time_zone: 'lst_ldt',
+    application: 'weather.nikolaj.dev',
+    format: 'json',
+  }) 
+  const water_temp = await fetch(
+    `https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?${tempParams}`
+  ).then(response=>response.json())
   console.log(`Tides for ${nearest.name}`,tides)
+  console.log(`Water Temp for ${nearest.name}`,water_temp)
   return {
     station: nearest,
+    water_temp: water_temp.data[0],
     tides: tides.predictions
   }
 }
