@@ -5,6 +5,7 @@ import * as SunCalc from "suncalc"
 import moment from "moment"
 import * as L from "leaflet"
 import "leaflet/dist/leaflet.css"
+import { load_tides } from './tide_feed'
 
 export function build_chart_data(latlng){
   return load_forecast(latlng).then( result => {
@@ -88,6 +89,7 @@ function load_forecast(latlng){
         fetch(data.properties.observationStations).then( response => response.json() ),
         new Promise( (resolve,reject) => resolve(data)),
         fetch(data.properties.forecast).then( response => response.json() ),
+        load_tides(latlng),
       ]).catch(err => { console.error("Failed getting forecast", err)})
     })
     .then( data => {
@@ -97,6 +99,7 @@ function load_forecast(latlng){
         location: data[3],
         day_forecast: data[4],
         obsv_station: data[2].features[0],
+        tides: data[5],
       }
     })
     .catch(err => {

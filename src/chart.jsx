@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'preact/hooks';
 import {build_chart_data,browser_location} from './data_feed.js';
+import { load_tides } from './tide_feed.js';
 import { Day } from './day.jsx'
 import { Map } from './map.jsx'
 
@@ -78,6 +79,7 @@ export function Chart(props){
       }
       if(!Number.isNaN(latlng_data.lat) && !Number.isNaN(latlng_data.lng)){
         updateForecast(latlng_data)
+        load_tides(latlng_data)
         return
       }
     }
