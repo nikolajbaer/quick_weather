@@ -17,6 +17,16 @@ export function build_chart_data(latlng){
     const hourly_data = build_hourly_data(result.forecast)
     window.days = days_data
     window.hourly = hourly_data
+    if(result.tides?.tides){
+      window.hourly.tide = result.tides.tides.map(tide => {
+        const t = moment(tide.t).toDate()
+        return {
+          value: Number(tide.v),
+          time: t,
+          gmtTime: t.toGMTString(),
+        }
+      })
+    }
     return {
       days:days_data,
       hourly:hourly_data,

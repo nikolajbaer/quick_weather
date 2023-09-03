@@ -79,7 +79,6 @@ export function Chart(props){
       }
       if(!Number.isNaN(latlng_data.lat) && !Number.isNaN(latlng_data.lng)){
         updateForecast(latlng_data)
-        load_tides(latlng_data)
         return
       }
     }
@@ -139,7 +138,11 @@ export function Chart(props){
         </div>
       </div>
       <div id="sources">
-        <p>Created by <a href="https://github.com/nikolajbaer">Nikolaj Baer</a> (<a href="https://github.com/nikolajbaer/quick_weather">src</a>). Weather data from <a href="https://www.weather.gov/documentation/services-web-api#/">api.weather.gov (NWS)</a> </p>
+        <p>Created by <a href="https://github.com/nikolajbaer">Nikolaj Baer</a> 
+          (<a href="https://github.com/nikolajbaer/quick_weather">src</a>). 
+          Weather data from <a href="https://www.weather.gov/documentation/services-web-api#/">api.weather.gov (NWS)</a> 
+          Tide data from <a href="https://api.tidesandcurrents.noaa.gov/api/prod/">api.tidesandcurrents.noaa.gov (NWS)</a> 
+        </p>
         <p>Forecasts are only available for the United States.</p>
       </div>
     </>

@@ -24,6 +24,9 @@ export function Day(props){
   wind_range.min = Math.floor((wind_range.min-1)/10) * 10
   wind_range.max = Math.ceil((wind_range.max+1)/10) * 10
 
+  // TODO figure out what tidal range is normally for this station and include in feed
+  const tide_range = {min:-2,max:8} 
+
   // Track mouse position and show cursor with chart readouts
   const track_mouse = (event) => {
     const rect = day_div.current.getBoundingClientRect();
@@ -60,6 +63,10 @@ export function Day(props){
         </div>
         <WindChart day={props.day} hourly={hourly} wind_range={wind_range} cursor={cursor} current={current} show_yaxis={props.first} />
         <Legend metrics={[{c:'darkblue',h:'Wind Speed (mph)'}]} show={props.last} />
+        {hourly.tide ? (<>
+          <TideChart day={props.day} hourly={hourly} tide_range={tide_range} cursor={cursor} current={current} show_yaxis={props.first} />
+          <Legend metrics={[{c:'darkblue',h:'Tide (ft)'}]} show={props.last} />
+        </>) : null}
       </div>
     </>
   ) 
@@ -295,6 +302,40 @@ function WindChart(props){
       </svg>
     </>
   )
+}
+
+
+function TideChart(props){
+  const interval = 1
+  const tide = hourly_path(props.hourly.tide,props.day.start, v => yval(v,props.tide_range))
+  const metric_format = v => v.toFixed(1)
+
+  let yaxis = ''
+  if(props.show_yaxis){
+    yaxis = (<YAxisLabels side="left" range={props.tide_range} interval={interval} label_format={v=>v.toFixed(0)+' ft'} />)
+  }
+
+  return (
+    <>
+      <svg class="lower_chart" viewBox="0 0 240 300" >
+        <DawnDuskUnderlay day={props.day} />
+        <YGridUnderlay range={props.tide_range} interval={interval} />
+        {yaxis}
+        <path d={tide} stroke="darkblue" fill="none" />
+        <TimeLineOverlay stroke="orange" x={props.cursor} />
+        <TimeLineOverlay stroke="black" x={props.current} />
+        <MetricReadout 
+          color="darkblue" 
+          units="ft" 
+          range={props.tide_range} 
+          start={props.day.start} 
+          cursor={props.cursor} 
+          metric={props.hourly.tide} 
+          metric_format={metric_format}
+        />
+      </svg>
+    </>
+  )  
 }
 
 function YGridUnderlay(props){

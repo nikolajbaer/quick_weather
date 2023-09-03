@@ -24,16 +24,14 @@ export async function load_tides(latlng){
   }
   // Take the neares
   console.log("Nearest tidal station is ",nearest.name)
-  const date = moment()
+  const date = moment().startOf('day').utc()
   const params = new URLSearchParams({
     begin_date: date.format('YYYYMMDD'),
     end_date: date.add(8,'days').format('YYYYMMDD'),
     station: nearest.id,
     product: 'predictions',
     datum: 'MLLW',
-    interval: 15,
-    // local time zone.. This might be problematic, so maybe we switch to gmt?
-    // but need to update the begin_date appropriately
+    interval: 'h',
     time_zone: 'lst_ldt',
     units: 'english',
     application: 'weather.nikolaj.dev',
@@ -58,7 +56,7 @@ export async function load_tides(latlng){
   console.log(`Water Temp for ${nearest.name}`,water_temp)
   return {
     station: nearest,
-    water_temp: water_temp.data[0],
+    water_temp: water_temp.data?.[0],
     tides: tides.predictions
   }
 }
