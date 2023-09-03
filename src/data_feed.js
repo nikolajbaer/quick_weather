@@ -95,6 +95,7 @@ function load_forecast(latlng){
     .then( data => {
       return Promise.all([
         fetch(data.properties.forecastOffice).then( response => response.json() ),
+        // TODO this might be a 404, e.g. if you search for Tampa Bay, FL (complains of no marine forecast)
         fetch(data.properties.forecastGridData).then( response => response.json() ),
         fetch(data.properties.observationStations).then( response => response.json() ),
         new Promise( (resolve,reject) => resolve(data)),
@@ -254,6 +255,7 @@ export function init_chart_data(){
   })
 }
 
+// https://api.weather.gov/icons + https://unicode.party/
 const ICON_MAP = {
   'rain': '🌧️',
   'rain_showers': '🌧️',
@@ -264,4 +266,32 @@ const ICON_MAP = {
   'snow': '🌨️',
   'fog': '🌫️',
   'tsra': '🌩️',
+  'hot': '☀️',
+  'hurricane': '🌀',
+  'blizzard': '🌨️',
+  'cold': '🥶',
+  'ovc': '☁️',
+  // TODO
+  'bkn': '❔',
+  'dust': '❔',
+  'fzra': '❔',
+  'haze': '❔',
+  'rain_fzra': '❔',
+  'rain_showers_hi': '❔',
+  'rain_sleet': '❔',
+  'rain_snow': '❔',
+  'skc': '❔',
+  'sleet': '❔',
+  'smoke': '❔',
+  'snow_fzra': '❔',
+  'snow_sleet': '❔',
+  'tornado': '❔',
+  'tropical_storm': '❔',
+  'tsra_hi': '❔',
+  'tsra_sct': '❔',
+  'wind_bkn': '❔',
+  'wind_few': '❔',
+  'wind_ovc': '❔',
+  'wind_sct': '❔',
+  'wind_skc': '❔',
 }

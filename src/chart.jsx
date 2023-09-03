@@ -140,7 +140,7 @@ export function Chart(props){
       <div id="sources">
         <p>Created by <a href="https://github.com/nikolajbaer">Nikolaj Baer</a> 
           (<a href="https://github.com/nikolajbaer/quick_weather">src</a>). 
-          Weather data from <a href="https://www.weather.gov/documentation/services-web-api#/">api.weather.gov (NWS)</a> 
+          Weather data from <a href="https://www.weather.gov/documentation/services-web-api#/">api.weather.gov (NWS)</a>
           Tide data from <a href="https://api.tidesandcurrents.noaa.gov/api/prod/">api.tidesandcurrents.noaa.gov (NWS)</a> 
         </p>
         <p>Forecasts are only available for the United States.</p>

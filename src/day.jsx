@@ -25,7 +25,9 @@ export function Day(props){
   wind_range.max = Math.ceil((wind_range.max+1)/10) * 10
 
   // TODO figure out what tidal range is normally for this station and include in feed
-  const tide_range = {min:-2,max:8} 
+  const tide_range = props.hourly.tide ? get_range([props.hourly.tide]) : {max:8,min:-2};
+  if(tide_range.min > -2){ tide_range.min = -2 }
+  if(tide_range.max < 8){ tide_range.max = 8 }
 
   // Track mouse position and show cursor with chart readouts
   const track_mouse = (event) => {
