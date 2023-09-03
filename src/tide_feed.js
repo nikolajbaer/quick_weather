@@ -25,7 +25,7 @@ export async function load_tides(latlng){
   // Take the neares
   console.log("Nearest tidal station is ",nearest.name)
   const date = moment().startOf('day').utc()
-  const params = new URLSearchParams({
+  const predictionParams = {
     begin_date: date.format('YYYYMMDD'),
     end_date: date.add(8,'days').format('YYYYMMDD'),
     station: nearest.id,
@@ -36,9 +36,9 @@ export async function load_tides(latlng){
     units: 'english',
     application: 'weather.nikolaj.dev',
     format: 'json',
-  })
+  }
   const tides = await fetch(
-    `https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?${params}`
+    `https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?${new URLSearchParams(predictionParams)}`
   ).then(response=>response.json())
   const tempParams = new URLSearchParams({
     date: 'today',
@@ -54,10 +54,19 @@ export async function load_tides(latlng){
   ).then(response=>response.json())
   console.log(`Tides for ${nearest.name}`,tides)
   console.log(`Water Temp for ${nearest.name}`,water_temp)
+
+  // Requery so we get explicit high/low tide times
+  predictionParams.interval = 'hilo'
+  const hilo = await fetch(
+    `https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?${new URLSearchParams(predictionParams)}`
+  ).then(response=>response.json())
+  console.log(`HiLo for ${nearest.name} `,hilo)
+
   return {
     station: nearest,
     water_temp: water_temp.data?.[0],
-    tides: tides.predictions
+    tides: tides.predictions,
+    tides_hilo: hilo.predictions,
   }
 }
 

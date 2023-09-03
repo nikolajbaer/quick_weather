@@ -66,6 +66,20 @@ export function Day(props){
         <WindChart day={props.day} hourly={hourly} wind_range={wind_range} cursor={cursor} current={current} show_yaxis={props.first} />
         <Legend metrics={[{c:'darkblue',h:'Wind Speed (mph)'}]} show={props.last} />
         {hourly.tide ? (<>
+          <div>
+            <div style={{height:"1.5em"}}>
+              {props.first ? (
+              <span>{props.station.tide_station?.name} 💧🌡️{props.station.tide_station?.water_temp}°F</span>
+              ) : null}
+            </div>
+            <div style={{height:"6em",fontSize:"8pt"}}>
+              {props.day.tide_hilo.map((tide,i) => (
+                <div key={i} style={{color:(tide.type=="L"?'blue':'green')}}>
+                  {tide.type} {moment(tide.t).format('hh:mma')} {tide.v}ft 
+                </div>
+              ))}
+            </div>
+          </div>
           <TideChart day={props.day} hourly={hourly} tide_range={tide_range} cursor={cursor} current={current} show_yaxis={props.first} />
           <Legend metrics={[{c:'darkblue',h:'Tide (ft)'}]} show={props.last} />
         </>) : null}
@@ -494,13 +508,6 @@ const HOUR_FMT = 'h:mmA'
 const DAY_FMT = 'ddd M/D'
 
 function formatTemp(C){ return (Math.round((C*(9/5)) + 32) + "°F") }
-
-function determine_weather(weather){
-  if(weather.precip_total > 0){return {n:"Rainy",i:"☔"} }  // todo drizzle, rain, snow
-  if(weather.skyCover > 50){ return {n:"Cloudy",i:"☁️"}; } 
-  if(weather.skyCover > 10){ return {n:"Partly Cloudy",i:"⛅"}; }
-  return {n:"Sunny",i:"☀️"};
-}
 
 // the x position of this date relative to start
 function xval(date,start){

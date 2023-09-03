@@ -97,7 +97,7 @@ export function Chart(props){
       }
       const first_day = days.length == 0
       const last_day = i == 7
-      days.push(<Day day={forecast.days[i]} hourly={forecast.hourly} first={first_day} last={last_day} />)
+      days.push(<Day day={forecast.days[i]} hourly={forecast.hourly} first={first_day} last={last_day} station={forecast.station} />)
     }
   }
 

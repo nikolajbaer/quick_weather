@@ -13,7 +13,7 @@ export function build_chart_data(latlng){
     window.data = result // debug
     return result
   }).then( result =>{
-    const days_data = build_days_data(result.forecast,result.day_forecast,latlng)
+    const days_data = build_days_data(result.forecast,result.day_forecast,latlng,result.tides)
     const hourly_data = build_hourly_data(result.forecast)
     window.days = days_data
     window.hourly = hourly_data
@@ -30,7 +30,13 @@ export function build_chart_data(latlng){
     return {
       days:days_data,
       hourly:hourly_data,
-      station:result.station,
+      station: {
+        ...result.station,
+        tide_station: { 
+          ...result.tides?.station, 
+          water_temp: result.tides?.water_temp?.v,
+        },
+      },
       properties:result.forecast.properties,
       obsv_station: result.obsv_station,
       latlng: latlng,
@@ -136,7 +142,7 @@ const metrics = [
 
 
 // TODO Tides https://api.tidesandcurrents.noaa.gov/api/prod/
-function build_days_data(forecast,day_forecast,latlng){
+function build_days_data(forecast,day_forecast,latlng,tides){
   const days = [];
   const forecast_start = moment.parseZone(forecast.properties.validTimes.split('/')[0]).toDate()
   
@@ -160,6 +166,8 @@ function build_days_data(forecast,day_forecast,latlng){
       snow:sum_amount(forecast.properties.snowfallAmount.values,start),
     }
 
+    const tide_hilo = tides?.tides_hilo ? tides.tides_hilo.filter(tide => moment(tide.t).isSame(start,'day')) : null
+
     // both in mm
     // snowfallAmount
     // quantitativePrecipitation
@@ -178,6 +186,7 @@ function build_days_data(forecast,day_forecast,latlng){
       },
       sun:SunCalc.getTimes(noon, latlng.lat,latlng.lng),
       precip_total: precip_total,
+      tide_hilo: tide_hilo,
     }
 
     // Determine a simplified icon from the NWS icon url (but don't use their icon)
