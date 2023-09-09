@@ -18,3 +18,8 @@ services:
       - "9999:9999"
     command: "npx netlify functions:serve"
     <<: *COMMON
+  grib_db: 
+    build: .
+    volumes:
+        - ./:/code/
+
